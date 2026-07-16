@@ -11,7 +11,7 @@ html, body {
 }
 
 .feed {
-  height: 100vh;
+  height: 100dvh;
   width: 100%;
   overflow-x: hidden;
   overflow-y: scroll;
@@ -36,11 +36,10 @@ html, body {
 
 .slide {
   position: relative;
-  height: 100vh;
+  height: 100dvh;
   width: 100%;
   padding: 50px 20px;
   scroll-snap-align: start;
-  scroll-snap-stop: always;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,8 +116,34 @@ html, body {
   pointer-events: none;
 }
 
-.slide.is-ready .spinner {
+.slide.is-ready .spinner,
+.slide.is-error .spinner {
   display: none;
+}
+
+.error-msg {
+  position: absolute;
+  display: none;
+  color: rgba(255, 255, 255, 0.75);
+  font: 14px/1.4 system-ui, sans-serif;
+  text-align: center;
+  padding: 0 20px;
+  pointer-events: none;
+}
+
+.slide.is-error .error-msg {
+  display: block;
+}
+
+.feed-error {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 24px;
+  color: rgba(255, 255, 255, 0.75);
+  font: 15px/1.5 system-ui, sans-serif;
 }
 
 @keyframes spin {
@@ -201,4 +226,48 @@ html, body {
   width: 80px;
   accent-color: #fff;
   cursor: pointer;
+}
+
+.nav-arrows {
+  position: fixed;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nav-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.nav-btn:active {
+  transform: scale(0.94);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+@media (hover: none), (max-width: 640px) {
+  .nav-arrows {
+    display: none;
+  }
 }

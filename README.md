@@ -18,6 +18,8 @@ and open `http://localhost:3000/`.
 - `IntersectionObserver` tracks which slide is currently visible (60% visibility threshold) and makes it "active": starts playback of that video and pauses the rest.
 - Lazy loading/unloading: a `<video>` gets its `src` only when the slide is near the active one (the active slide itself + one neighbour above/below). All other videos have no `src` at all (`preload="none"`, the `src` attribute is removed and `video.load()` is called), which saves memory and network/decoder resources — at most 3 video elements out of 11 stay "alive" at any moment.
 - Tap/click on the video toggles play/pause; a ▶ icon appears over the video when paused.
+- Keyboard (desktop): `↑`/`↓` (or `PageUp`/`PageDown`) move to the previous/next video, `Space` toggles play/pause of the active one.
+- If a video fails to load, its slide shows an "unavailable" message instead of an endless spinner; if the whole list can't be fetched, the feed shows an error.
 - A seek bar at the bottom of each slide lets you scrub through the video.
 - The volume control (top left) toggles mute/unmute and sets volume via a slider (muted by default — required by browser autoplay policies).
 - Videos loop (`loop`), use `object-fit: contain` to preserve aspect ratio on any screen ratio.
@@ -25,7 +27,8 @@ and open `http://localhost:3000/`.
 ## Structure
 
 - `index.html` — markup (feed container + controls panel)
-- `css/style.css` — layout based on scroll-snap, full-screen slides
-- `js/app.js` — building slides from the file list in `video/`, IntersectionObserver, lazy loading/pause, volume, seeking
-- `icons/` — SVG icons for the controls panel
+- `css/style.css` — layout based on scroll-snap, full-screen slides (`100dvh`)
+- `js/app.js` — fetches the video list, builds slides, IntersectionObserver, lazy loading/pause, keyboard nav, volume, seeking
+- `data/videos.json` — the list of video URLs, decoupled from the code (edit this to change the feed; entries can be relative paths or absolute URLs)
+- `img/` — SVG icons for the controls panel
 - `video/` — source videos for the feed

@@ -1,35 +1,37 @@
-(() => {
-  const VIDEO_FILES = [
-    '-1381854028232193089.MP4',
-    '-2466797579047759691.MP4',
-    '-2635594312504430960.MP4',
-    '-425148686832983381.MP4',
-    '-6974447037748169156.MP4',
-    '3698940505591559678.MP4',
-    '3746059563046546718.MP4',
-    '6702137189532704568.MP4',
-    '6737137111559968548.MP4',
-    '7578542087815133230.MP4',
-    '7870372071727092435.MP4',
-  ];
-
-  const LOAD_RADIUS = 1; // how many neighbours (before/after active) keep their src loaded
+(async () => {
+  const MANIFEST_URL = 'data/videos.json'; // list of video URLs — decoupled from code
+  const LOAD_RADIUS = 2; // how many neighbours (before/after active) keep their src loaded
 
   const feed = document.getElementById('feed');
   const volumeBtn = document.getElementById('volumeBtn');
   const volumeSlider = document.getElementById('volumeSlider');
+  const navPrev = document.getElementById('navPrev');
+  const navNext = document.getElementById('navNext');
 
   let muted = true;
   let volume = 1;
   let activeIndex = -1;
 
-  const slides = VIDEO_FILES.map((file, index) => {
+  // --- load the video list ---------------------------------------------------
+  let sources = [];
+  try {
+    const res = await fetch(MANIFEST_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    sources = await res.json();
+    if (!Array.isArray(sources) || sources.length === 0) throw new Error('empty manifest');
+  } catch (err) {
+    feed.innerHTML = `<div class="feed-error">Не удалось загрузить список видео.<br>${err.message}</div>`;
+    return;
+  }
+
+  // --- build slides ----------------------------------------------------------
+  const slides = sources.map((src, index) => {
     const slide = document.createElement('div');
     slide.className = 'slide';
     slide.dataset.index = String(index);
 
     const video = document.createElement('video');
-    video.dataset.src = `video/${file}`;
+    video.dataset.src = src;
     video.loop = true;
     video.muted = muted;
     video.volume = volume;
@@ -39,9 +41,13 @@
     const spinner = document.createElement('div');
     spinner.className = 'spinner';
 
+    const errorMsg = document.createElement('div');
+    errorMsg.className = 'error-msg';
+    errorMsg.textContent = 'Видео недоступно';
+
     const playIcon = document.createElement('div');
     playIcon.className = 'play-icon';
-    playIcon.innerHTML = '<img src="icons/play.svg" width="32" height="32" alt="" />';
+    playIcon.innerHTML = '<img src="img/play.svg" width="32" height="32" alt="" />';
 
     const seekBar = document.createElement('input');
     seekBar.type = 'range';
@@ -56,6 +62,13 @@
 
     video.addEventListener('canplay', () => slide.classList.add('is-ready'));
     video.addEventListener('waiting', () => slide.classList.remove('is-ready'));
+
+    video.addEventListener('error', () => {
+      // ignore the synthetic error fired when we clear src during unload
+      if (!video.getAttribute('src')) return;
+      slide.classList.add('is-error');
+      slide.classList.remove('is-ready');
+    });
 
     video.addEventListener('timeupdate', () => {
       if (isSeeking || !video.duration) return;
@@ -73,24 +86,30 @@
 
     seekBar.addEventListener('click', (e) => e.stopPropagation());
 
-    slide.addEventListener('click', () => {
-      if (video.paused) {
-        video.play().catch(() => {});
-        slide.classList.remove('is-paused');
-      } else {
-        video.pause();
-        slide.classList.add('is-paused');
-      }
-    });
+    slide.addEventListener('click', () => togglePlay(slide));
 
-    slide.append(video, spinner, playIcon, seekBar);
+    slide.append(video, spinner, errorMsg, playIcon, seekBar);
     feed.appendChild(slide);
     return slide;
   });
 
+  function togglePlay(slide) {
+    const video = slide.querySelector('video');
+    if (!video.src) return;
+    if (video.paused) {
+      video.play().catch(() => {});
+      slide.classList.remove('is-paused');
+    } else {
+      video.pause();
+      slide.classList.add('is-paused');
+    }
+  }
+
   function loadSlide(slide) {
     const video = slide.querySelector('video');
     if (video.src) return;
+    slide.classList.remove('is-error');
+    video.preload = 'auto'; // actually buffer media data ahead of time
     video.src = video.dataset.src;
     video.load();
   }
@@ -100,6 +119,7 @@
     if (!video.src) return;
     video.pause();
     video.removeAttribute('src');
+    video.preload = 'none';
     video.load();
     slide.classList.remove('is-ready');
     slide.querySelector('.seek-bar').value = '0';
@@ -108,6 +128,8 @@
   function setActive(index) {
     if (index === activeIndex) return;
     activeIndex = index;
+    navPrev.disabled = index <= 0;
+    navNext.disabled = index >= slides.length - 1;
 
     slides.forEach((slide, i) => {
       const video = slide.querySelector('video');
@@ -139,6 +161,35 @@
 
   slides.forEach((slide) => observer.observe(slide));
 
+  // --- keyboard navigation (desktop) -----------------------------------------
+  function goTo(index) {
+    const target = Math.min(Math.max(index, 0), slides.length - 1);
+    slides[target].scrollIntoView({ behavior: 'smooth' });
+  }
+
+  navPrev.addEventListener('click', () => goTo(activeIndex - 1));
+  navNext.addEventListener('click', () => goTo(activeIndex + 1));
+
+  document.addEventListener('keydown', (e) => {
+    switch (e.key) {
+      case 'ArrowDown':
+      case 'PageDown':
+        e.preventDefault();
+        goTo(activeIndex + 1);
+        break;
+      case 'ArrowUp':
+      case 'PageUp':
+        e.preventDefault();
+        goTo(activeIndex - 1);
+        break;
+      case ' ':
+        e.preventDefault();
+        if (slides[activeIndex]) togglePlay(slides[activeIndex]);
+        break;
+    }
+  });
+
+  // --- volume ----------------------------------------------------------------
   function volumeStateClass() {
     if (muted || volume === 0) return 'vol-mute';
     return volume < 0.5 ? 'vol-low' : 'vol-high';
