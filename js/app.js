@@ -1,6 +1,6 @@
 (async () => {
-  const MANIFEST_URL = 'data/videos.json'; // list of video URLs — decoupled from code
-  const LOAD_RADIUS = 2; // how many neighbours (before/after active) keep their src loaded
+  const MANIFEST_URL = 'data/videos.json';
+  const LOAD_RADIUS = 2;
 
   const feed = document.getElementById('feed');
   const volumeBtn = document.getElementById('volumeBtn');
@@ -12,7 +12,6 @@
   let volume = 1;
   let activeIndex = -1;
 
-  // --- load the video list ---------------------------------------------------
   let sources = [];
   try {
     const res = await fetch(MANIFEST_URL);
@@ -26,7 +25,6 @@
     return;
   }
 
-  // --- build slides ----------------------------------------------------------
   const slides = sources.map((src, index) => {
     const slide = document.createElement('div');
     slide.className = 'slide';
@@ -66,7 +64,6 @@
     video.addEventListener('waiting', () => slide.classList.remove('is-ready'));
 
     video.addEventListener('error', () => {
-      // ignore the synthetic error fired when we clear src during unload
       if (!video.getAttribute('src')) return;
       slide.classList.add('is-error');
       slide.classList.remove('is-ready');
@@ -111,7 +108,7 @@
     const video = slide.querySelector('video');
     if (video.src) return;
     slide.classList.remove('is-error');
-    video.preload = 'auto'; // actually buffer media data ahead of time
+    video.preload = 'auto';
     video.src = video.dataset.src;
     video.load();
   }
@@ -163,7 +160,6 @@
 
   slides.forEach((slide) => observer.observe(slide));
 
-  // --- keyboard navigation (desktop) -----------------------------------------
   function goTo(index) {
     const target = Math.min(Math.max(index, 0), slides.length - 1);
     slides[target].scrollIntoView({ behavior: 'smooth' });
@@ -191,7 +187,6 @@
     }
   });
 
-  // --- volume ----------------------------------------------------------------
   function volumeStateClass() {
     if (muted || volume === 0) return 'vol-mute';
     return volume < 0.5 ? 'vol-low' : 'vol-high';
