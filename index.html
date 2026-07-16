@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Reels</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="feed" class="feed"></div>
+
+  <div id="controls" class="controls">
+    <div class="volume-control">
+      <button id="volumeBtn" class="ctrl-btn vol-mute" aria-label="Toggle sound" type="button">
+        <img class="icon-mute" src="icons/volume-mute.svg" width="20" height="20" alt="icon-mute" />
+        <img class="icon-low" src="icons/volume-low.svg" width="20" height="20" alt="icon-low" />
+        <img class="icon-high" src="icons/volume-high.svg" width="20" height="20" alt="icon-high" />
+      </button>
+      <input id="volumeSlider" class="volume-slider" type="range" min="0" max="1" step="0.01" value="1" aria-label="Volume" />
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
