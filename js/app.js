@@ -20,7 +20,7 @@
     sources = await res.json();
     if (!Array.isArray(sources) || sources.length === 0) throw new Error('empty manifest');
   } catch (err) {
-    feed.innerHTML = `<div class="feed-error">Не удалось загрузить список видео.<br>${err.message}</div>`;
+    feed.innerHTML = `<div class="feed-error">Failed to load the video list.<br>${err.message}</div>`;
     return;
   }
 
@@ -43,7 +43,7 @@
 
     const errorMsg = document.createElement('div');
     errorMsg.className = 'error-msg';
-    errorMsg.textContent = 'Видео недоступно';
+    errorMsg.textContent = 'Video unavailable';
 
     const playIcon = document.createElement('div');
     playIcon.className = 'play-icon';
