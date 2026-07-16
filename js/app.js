@@ -21,6 +21,8 @@
     if (!Array.isArray(sources) || sources.length === 0) throw new Error('empty manifest');
   } catch (err) {
     feed.innerHTML = `<div class="feed-error">Failed to load the video list.<br>${err.message}</div>`;
+    navPrev.disabled = true;
+    navNext.disabled = true;
     return;
   }
 
